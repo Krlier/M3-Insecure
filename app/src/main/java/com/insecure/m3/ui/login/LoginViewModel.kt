@@ -1,13 +1,22 @@
 package com.insecure.m3.ui.login
 
+import android.app.Activity
+import android.os.Looper
+import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import android.util.Patterns
+import com.insecure.m3.R
 import com.insecure.m3.data.LoginRepository
 import com.insecure.m3.data.Result
+import khttp.get
+import khttp.post
+import java.util.logging.Handler
+import android.os.AsyncTask
 
-import com.insecure.m3.R
+
+
 
 class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
 
@@ -30,13 +39,29 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     }
 
     fun loginDataChanged(username: String, password: String) {
+        //1
+
         if (!isUserNameValid(username)) {
             _loginForm.value = LoginFormState(usernameError = R.string.invalid_username)
         } else if (!isPasswordValid(password)) {
             _loginForm.value = LoginFormState(passwordError = R.string.invalid_password)
-        } else {
-            _loginForm.value = LoginFormState(isDataValid = true)
         }
+//3
+        val statusIsTrue: (Int)->Unit = { code ->
+
+            _loginForm.value = LoginFormState(isDataValid = code == 200)
+            print(code)
+
+        }
+
+//2
+        userExists(username, password, statusIsTrue)
+        /*
+        if ( isUserNameValid(username) && isPasswordValid(password) && userExists()) {
+            _loginForm.value = LoginFormState(isDataValid = true)
+        } else {
+            _loginForm.value = LoginFormState(isDataValid = false)
+        }*/
     }
 
     // A placeholder username validation check
@@ -51,5 +76,17 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     // A placeholder password validation check
     private fun isPasswordValid(password: String): Boolean {
         return password.length > 5
+    }
+
+    private fun userExists(username: String, password: String, statusIsTrue:(Int)->Unit ) {
+
+        Thread(Runnable {
+            var statusCode = 401
+            statusCode = post("http://http-login.badssl.com/submit/", data = mapOf(username to password)).statusCode
+
+            statusIsTrue(statusCode)
+
+        }).start()
+
     }
 }
