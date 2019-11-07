@@ -44,22 +44,23 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
         //3
         val statusIsTrue: (Int)->Unit = { code ->
 
-            var handler : Handler = Handler(Looper.getMainLooper())
+            var handler = Handler(Looper.getMainLooper())
 
-            handler.post(Runnable() {
+            handler.post({
                  run {
-                     var result = isUserNameValid(username) && isPasswordValid(password) && code == 200
+                     var result =  code == 200
 
                     _loginForm.value = LoginFormState(isDataValid = result)
-                    print(code)
+                    println("AQUI: "+code)
                 }
             })
 
         }
 
         // 2
-        userExists(username, password, statusIsTrue)
-
+        if (isUserNameValid(username) && isPasswordValid(password) ){
+            userExists(username, password, statusIsTrue)
+        }
     }
 
     // A placeholder username validation check
@@ -80,7 +81,7 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
 
         Thread(Runnable {
             var statusCode = 401
-            statusCode = post("http://http-login.badssl.com/submit/", data = mapOf(username to password)).statusCode
+            statusCode = post("http://10.127.40.163:8090/auth", data = mapOf(username to password)).statusCode
 
             statusIsTrue(statusCode)
 
