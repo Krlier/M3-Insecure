@@ -81,7 +81,7 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
 
         Thread(Runnable {
             var statusCode = 401
-            statusCode = post("http://10.127.40.163:8090/auth", data = mapOf(username to password)).statusCode
+            statusCode = post("AuthURL", data = mapOf(username to password)).statusCode
 
             statusIsTrue(statusCode)
 
